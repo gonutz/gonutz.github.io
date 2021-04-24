@@ -13,35 +13,89 @@ body {
 	align-items: center;
 	justify-content: center;
 }
-canvas {
-	border: 1px solid white;
-}
 </style>
 </head>
 <body>
-<canvas id="c" width="1900" height="900" />
+<canvas id="c" width="1200" height="800" />
 <audio src="Joris - Bis ans Ende der Welt.mp3" autoplay />
 <script>
 var canvas = document.getElementById("c");
 var c = canvas.getContext("2d");
 var img = new Image();
-img.src = "assets/dig1.png";
 var sound = new Audio();
 sound.src = "sound.wav";
 var time = 0;
-var digFrame = 0;
+var digFrame = 9999;
+var rocks = [];
+var rockImages = [];
+for(i = 0; i < 5; i++) {
+	rockImages[i] = new Image();
+	rockImages[i].src = "assets/rock" + i + ".png";
+}
+var nextRockIn = 0;
+const GRAVITY = 0.25;
+
+function randInterval(min, max) {
+	return min + Math.random()*(max-min);
+}
+
+function newRock() {
+	var rock = {
+		index: Math.floor(Math.random() * rockImages.length),
+		x: randInterval(-20, 20),
+		y: 100,
+		rotation: 2 * Math.PI * Math.random(),
+		rotationSpeed: randInterval(-0.3, 0.3),
+		scale: randInterval(0.3, 0.7),
+		xSpeed: randInterval(-8, 8),
+		ySpeed: randInterval(-15, -14),
+	}
+	// Reuse a rock object that is not visible anymore. This saves some overhead.
+	for(i = 0; i < rocks.length; i++) {
+		if(rocks[i].scale < 0.02) {
+			rocks[i] = rock;
+			return;
+		}
+	}
+	// Only enlarge the array if all rocks are still active.
+	rocks.push(rock);
+}
+
 function loop() {
 	requestAnimationFrame(loop);
-	c.clearRect(0, 0, canvas.width, canvas.height);
-	c.fillStyle = "#FF00FF";
-	c.fillRect(10, 20, 30, 40);
-	c.font = "30px Arial";
-	c.fillText("Wat wat?", 45, 60);
-	c.drawImage(img, (canvas.width - img.width) / 2, (canvas.height - img.height) / 2);
+	
+	// Update animations.
 	if(time % 4 == 0) {
 		digFrame = (digFrame + 1) % 10;
 		img.src = "assets/dig" + digFrame + ".png";
 	}
+	nextRockIn = nextRockIn - 1;
+	if(nextRockIn <= 0) {
+		newRock();
+		nextRockIn = 3 + Math.floor(Math.random() * 3);
+	}
+	
+	// Draw.
+	c.clearRect(0, 0, canvas.width, canvas.height);
+	for(i = 0; i < rocks.length; i++) {
+		var r = rocks[i];
+		//c.translate(-rockImages[r.index].width/2, -rockImages[r.index].height/2);
+		//c.translate(50, 50);
+		c.translate(canvas.width/2 + rocks[i].x, canvas.height/2 + rocks[i].y);
+		c.rotate(rocks[i].rotation);
+		c.scale(rocks[i].scale, rocks[i].scale);
+		c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
+		c.setTransform(1, 0, 0, 1, 0, 0);
+		rocks[i].rotation = rocks[i].rotation + rocks[i].rotationSpeed;		
+		rocks[i].scale = rocks[i].scale * 0.985;
+		rocks[i].rotationSpeed = rocks[i].rotationSpeed * 0.98;
+		rocks[i].x = rocks[i].x + rocks[i].xSpeed;
+		rocks[i].y = rocks[i].y + rocks[i].ySpeed;
+		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
+	}
+	console.log(rocks.length);
+	c.drawImage(img, (canvas.width - img.width) / 2, (canvas.height - img.height) / 2);
+	
 	time = time + 1;
 }
 requestAnimationFrame(loop);

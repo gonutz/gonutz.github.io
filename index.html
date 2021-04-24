@@ -22,8 +22,8 @@ body {
 var canvas = document.getElementById("c");
 var c = canvas.getContext("2d");
 var img = new Image();
-var sound = new Audio();
-sound.src = "sound.wav";
+var background = new Image();
+background.src = "assets/back.png";
 var time = 0;
 var digFrame = 9999;
 var rocks = [];
@@ -72,20 +72,9 @@ function loop() {
 	nextRockIn = nextRockIn - 1;
 	if(nextRockIn <= 0) {
 		newRock();
-		nextRockIn = 3 + Math.floor(Math.random() * 3);
+		nextRockIn = randInterval(3, 6);
 	}
-	
-	// Draw.
-	c.clearRect(0, 0, canvas.width, canvas.height);
 	for(i = 0; i < rocks.length; i++) {
-		var r = rocks[i];
-		//c.translate(-rockImages[r.index].width/2, -rockImages[r.index].height/2);
-		//c.translate(50, 50);
-		c.translate(canvas.width/2 + rocks[i].x, canvas.height/2 + rocks[i].y);
-		c.rotate(rocks[i].rotation);
-		c.scale(rocks[i].scale, rocks[i].scale);
-		c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
-		c.setTransform(1, 0, 0, 1, 0, 0);
 		rocks[i].rotation = rocks[i].rotation + rocks[i].rotationSpeed;		
 		rocks[i].scale = rocks[i].scale * 0.985;
 		rocks[i].rotationSpeed = rocks[i].rotationSpeed * 0.98;
@@ -93,7 +82,30 @@ function loop() {
 		rocks[i].y = rocks[i].y + rocks[i].ySpeed;
 		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
 	}
-	console.log(rocks.length);
+	
+	// Draw.
+	c.clearRect(0, 0, canvas.width, canvas.height);
+	for(i = 0; i < rocks.length; i++) {
+		var r = rocks[i];
+		if(r.ySpeed > 0) {
+			c.translate(canvas.width/2 + rocks[i].x, canvas.height/2 + rocks[i].y);
+			c.rotate(rocks[i].rotation);
+			c.scale(rocks[i].scale, rocks[i].scale);
+			c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
+			c.setTransform(1, 0, 0, 1, 0, 0);
+		}
+	}
+	c.drawImage(background, 0, 0);
+	for(i = 0; i < rocks.length; i++) {
+		var r = rocks[i];
+		if(r.ySpeed < 0) {
+			c.translate(canvas.width/2 + rocks[i].x, canvas.height/2 + rocks[i].y);
+			c.rotate(rocks[i].rotation);
+			c.scale(rocks[i].scale, rocks[i].scale);
+			c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
+			c.setTransform(1, 0, 0, 1, 0, 0);
+		}
+	}
 	c.drawImage(img, (canvas.width - img.width) / 2, (canvas.height - img.height) / 2);
 	
 	time = time + 1;

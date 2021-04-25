@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Deeper and Deeper</title>
+<title>Dig Deeper & Digger</title>
 <style>
 html, body {
 	height: 100%;
@@ -17,13 +17,14 @@ body {
 </head>
 <body>
 <canvas id="c" width="1200" height="800" />
-<audio src="Joris - Bis ans Ende der Welt.mp3" autoplay />
 <script>
 canvas = document.getElementById("c");
 c = canvas.getContext("2d");
 digImg = new Image();
 background = new Image();
 background.src = "assets/background.png";
+backgroundGradient = new Image();
+backgroundGradient.src = "assets/gradient.png";
 time = 0;
 digFrame = 9999;
 backFrame = 9999;
@@ -35,9 +36,39 @@ for(i = 0; i < 5; i++) {
 }
 nextRockIn = 0;
 GRAVITY = 0.25;
+LEFT_KEY = 37;
+UP_KEY = 38;
+RIGHT_KEY = 39;
+DOWN_KEY = 40;
+leftDown = false;
+rightDown = false;
+document.addEventListener('keydown', function(e) {
+	if (e.which === LEFT_KEY) {
+		leftDown = true;
+	}
+	if (e.which === RIGHT_KEY) {
+		rightDown = true;
+	}
+});
+document.addEventListener('keyup', function(e) {
+	if (e.which === LEFT_KEY) {
+		leftDown = false;
+	}
+	if (e.which === RIGHT_KEY) {
+		rightDown = false;
+	}
+});
 
 function randInterval(min, max) {
 	return min + Math.random()*(max-min);
+}
+
+function randSign() {
+	if(Math.random() < 0.5) {
+		return 1;
+	} else {
+		return -1;
+	}
 }
 
 function newRock() {
@@ -48,8 +79,8 @@ function newRock() {
 		rotation: 2 * Math.PI * Math.random(),
 		rotationSpeed: randInterval(-0.3, 0.3),
 		scale: randInterval(0.3, 0.7),
-		xSpeed: randInterval(-8, 8),
-		ySpeed: randInterval(-15, -14),
+		xSpeed: randSign() * randInterval(4, 12),
+		ySpeed: randInterval(-18, -17),
 	}
 	// Reuse a rock object that is not visible anymore. This saves some overhead.
 	for(i = 0; i < rocks.length; i++) {
@@ -62,8 +93,12 @@ function newRock() {
 	rocks.push(rock);
 }
 
+backX = 0;
+
 function loop() {
 	requestAnimationFrame(loop);
+
+	canvas.height = window.innerHeight;
 
 	// Update animations.
 	if(time % 4 == 0) {
@@ -73,34 +108,59 @@ function loop() {
 	nextRockIn = nextRockIn - 1;
 	if(nextRockIn <= 0) {
 		newRock();
-		nextRockIn = randInterval(3, 6);
+		nextRockIn = randInterval(1, 4);
 	}
 	for(i = 0; i < rocks.length; i++) {
 		rocks[i].rotation = rocks[i].rotation + rocks[i].rotationSpeed;
-		rocks[i].scale = rocks[i].scale * 0.985;
+		rocks[i].scale = rocks[i].scale * 0.99;
 		rocks[i].rotationSpeed = rocks[i].rotationSpeed * 0.98;
 		rocks[i].x = rocks[i].x + rocks[i].xSpeed;
 		rocks[i].y = rocks[i].y + rocks[i].ySpeed;
 		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
 	}
 
+	digY = canvas.height - 2.5*digImg.height;
+
+	if(rightDown) {
+		backX = backX - 10;
+	}
+	if(leftDown) {
+		backX = backX + 10;
+	}
+
 	// Draw.
 	c.clearRect(0, 0, canvas.width, canvas.height);
 
 	backY = -(5*time % background.height);
-	c.drawImage(background, 0, backY);
-	c.drawImage(background, 0, backY + background.height);
+	backX = (backX+background.width) % background.width - background.width;
+	for(y = backY; y < canvas.height; y = y + background.height) {
+		for(x = backX; x < canvas.width; x = x + background.width) {
+			c.drawImage(background, x, y);
+		}
+	}
+
+	holeY = digY+140;
+	holeRadius = 80;
+	c.beginPath();
+	c.arc(canvas.width / 2-5, holeY, holeRadius, 0, 2*Math.PI, false);
+	c.fillStyle = "black";
+	c.fill();
+	c.fillRect(canvas.width/2 - 85, 0, 2*holeRadius, holeY);
 
 	for(i = 0; i < rocks.length; i++) {
 		r = rocks[i];
-		c.translate(canvas.width/2 + rocks[i].x, canvas.height/2 + rocks[i].y);
+		c.translate(canvas.width/2 + rocks[i].x, digY + 170 + rocks[i].y);
 		c.rotate(rocks[i].rotation);
 		c.scale(rocks[i].scale, rocks[i].scale);
 		c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
 		c.setTransform(1, 0, 0, 1, 0, 0);
 	}
 
-	c.drawImage(digImg, (canvas.width - digImg.width) / 2, (canvas.height - digImg.height) / 2);
+	c.drawImage(digImg, (canvas.width - digImg.width) / 2, digY);
+
+	for(y = 0; y < canvas.height; y = y + backgroundGradient.height) {
+		c.drawImage(backgroundGradient, 0, y);
+	}
 
 	time = time + 1;
 }

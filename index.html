@@ -20,7 +20,6 @@ body {
 <script>
 canvas = document.getElementById("c");
 c = canvas.getContext("2d");
-digImg = new Image();
 background = new Image();
 background.src = "assets/background.jpg";
 backgroundGradient = new Image();
@@ -33,6 +32,11 @@ rockImages = [];
 for(i = 0; i < 5; i++) {
 	rockImages[i] = new Image();
 	rockImages[i].src = "assets/rock" + i + ".png";
+}
+digFrames = [];
+for(i = 0; i < 10; i++) {
+	digFrames[i] = new Image();
+	digFrames[i].src = "assets/dig" + i + ".png";
 }
 nextRockIn = 0;
 GRAVITY = 0.25;
@@ -103,7 +107,6 @@ function loop() {
 	// Update animations.
 	if(time % 4 == 0) {
 		digFrame = (digFrame + 1) % 10;
-		digImg.src = "assets/dig" + digFrame + ".png";
 	}
 	nextRockIn = nextRockIn - 1;
 	if(nextRockIn <= 0) {
@@ -119,6 +122,7 @@ function loop() {
 		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
 	}
 
+	digImg = digFrames[digFrame];
 	digY = canvas.height - 2.5*digImg.height;
 
 	if(rightDown) {

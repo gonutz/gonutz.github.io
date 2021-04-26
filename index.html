@@ -62,6 +62,27 @@ digFrames[6] = loadImage("assets/dig6.png");
 digFrames[7] = loadImage("assets/dig7.png");
 digFrames[8] = loadImage("assets/dig8.png");
 digFrames[9] = loadImage("assets/dig9.png");
+deathFrames = [];
+deathFrames[0] = loadImage("assets/puke0.png");
+deathFrames[1] = loadImage("assets/puke1.png");
+deathFrames[2] = loadImage("assets/puke2.png");
+deathFrames[3] = loadImage("assets/puke3.png");
+deathFrames[4] = loadImage("assets/puke4.png");
+deathFrames[5] = loadImage("assets/puke5.png");
+deathFrames[6] = loadImage("assets/puke6.png");
+deathFrames[7] = loadImage("assets/puke7.png");
+deathFrames[8] = loadImage("assets/puke8.png");
+deathFrames[9] = loadImage("assets/puke9.png");
+deathFrames[10] = loadImage("assets/puke10.png");
+deathFrames[11] = loadImage("assets/puke11.png");
+deathFrames[12] = loadImage("assets/puke12.png");
+deathFrames[13] = loadImage("assets/puke13.png");
+deathFrames[14] = loadImage("assets/puke14.png");
+deathFrames[15] = loadImage("assets/puke15.png");
+deathFrames[16] = loadImage("assets/puke16.png");
+deathFrames[17] = loadImage("assets/puke17.png");
+deathFrames[18] = loadImage("assets/puke18.png");
+deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
 lifeBar = loadImage("assets/life_bar_colored.png");
@@ -98,12 +119,15 @@ foods = [];
 time = 0;
 backX = 0;
 digFrame = 9999;
+deathFrame = 9999;
 backFrame = 9999;
 nextRockIn = 0;
 holes = [];
 loadingTime = 0;
 food = [];
 life = 1.0;
+dead = false;
+deathBackY = 0;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -264,17 +288,27 @@ function loop() {
 
 	// Update animations.
 	var dx = -moveDir * X_MOVE_SPEED;
+	if(dead) {
+		dx = 0;
+	}
 	backX = backX + dx;
 	backX = (backX+background.width) % background.width - background.width;
+	var backY = -(5*time % background.height);
 
 	if(time % 4 == 0) {
-		digFrame = (digFrame + 1) % digFrames.length;
+		if(dead) {
+			deathFrame = (deathFrame + 1) % deathFrameSequence.length;
+		} else {
+			digFrame = (digFrame + 1) % digFrames.length;
+		}
 	}
 
-	nextRockIn = nextRockIn - 1;
-	if(nextRockIn <= 0) {
-		newRock();
-		nextRockIn = randInterval(1, 4);
+	if(!dead) {
+		nextRockIn = nextRockIn - 1;
+		if(nextRockIn <= 0) {
+			newRock();
+			nextRockIn = randInterval(1, 4);
+		}
 	}
 	for(i = 0; i < rocks.length; i++) {
 		rocks[i].rotation = rocks[i].rotation + rocks[i].rotationSpeed;
@@ -285,8 +319,11 @@ function loop() {
 		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
 	}
 
-	var digImg = digFrames[digFrame];
-	var digY = canvas.height - 2.5*digImg.height;
+	var rabbit = digFrames[digFrame];
+	if(dead) {
+		rabbit = deathFrames[deathFrameSequence[deathFrame]];
+	}
+	var digY = canvas.height - 2.5*rabbit.height;
 
 	if(moveFrames > 0) {
 		moveFrames--;
@@ -307,17 +344,19 @@ function loop() {
 
 	var headX = canvas.width / 2;
 	var headY = digY - 50;
-	for(i = 0; i < foods.length; i++) {
-		foods[i].x = foods[i].x + dx;
-		foods[i].y = foods[i].y - 5;
-		if(square(foods[i].x - headX) + square(foods[i].y-120) < square(40)) {
-			if(foods[i].life < 0) {
-				randomYuckSound().play();
-			} else {
-				randomEatSound().play();
+	if(!dead) {
+		for(i = 0; i < foods.length; i++) {
+			foods[i].x = foods[i].x + dx;
+			foods[i].y = foods[i].y - 5;
+			if(square(foods[i].x - headX) + square(foods[i].y-120) < square(40)) {
+				if(foods[i].life < 0) {
+					randomYuckSound().play();
+				} else {
+					randomEatSound().play();
+				}
+				foods[i].y = FOOD_VANISH_Y;
+				life = life + foods[i].life;
 			}
-			foods[i].y = FOOD_VANISH_Y;
-			life = life + foods[i].life;
 		}
 	}
 	life = life + LIFE_PER_FRAME;
@@ -327,18 +366,28 @@ function loop() {
 	if(life < 0) {
 		life = 0;
 	}
+	if(!dead && life == 0) {
+		music.pause();
+		randomYuckSound().play();
+		dead = true;
+		deathBackY = backY;
+		deathFrame = 0;
+	}
 
-	if(time % NEW_FOOD_TIME == 0) {
+	if(!dead && time % NEW_FOOD_TIME == 0) {
 		newFood();
 	}
 
 	const HOLE_RADIUS = 80;
 	newHole(canvas.width / 2-5, digY+140);
 
+	if(dead) {
+		backY = deathBackY;
+	}
+
 	// Draw.
 	c.clearRect(0, 0, canvas.width, canvas.height);
 
-	var backY = -(5*time % background.height);
 	for(y = backY; y < canvas.height; y = y + background.height) {
 		for(x = backX; x < canvas.width; x = x + background.width) {
 			c.drawImage(background, x, y);
@@ -371,7 +420,7 @@ function loop() {
 		c.setTransform(1, 0, 0, 1, 0, 0);
 	}
 
-	c.drawImage(digImg, (canvas.width - digImg.width) / 2, digY);
+	c.drawImage(rabbit, (canvas.width - rabbit.width) / 2, digY);
 
 	for(y = 0; y < canvas.height; y = y + backgroundGradient.height) {
 		c.drawImage(backgroundGradient, 0, y);

@@ -71,6 +71,11 @@ eatSounds[0] = loadSound("assets/eat0.ogg");
 eatSounds[1] = loadSound("assets/eat1.ogg");
 eatSounds[2] = loadSound("assets/eat2.ogg");
 eatSounds[3] = loadSound("assets/eat3.ogg");
+yuckSounds = [];
+yuckSounds[0] = loadSound("assets/yuck0.ogg");
+yuckSounds[1] = loadSound("assets/yuck1.ogg");
+yuckSounds[2] = loadSound("assets/yuck2.ogg");
+yuckSounds[3] = loadSound("assets/yuck3.ogg");
 music = loadSound("assets/back_music.ogg");
 
 // Some constants to tweak the game.
@@ -207,6 +212,16 @@ function randomEatSound() {
 	return eatSounds[i];
 }
 
+lastYuckSound = -1;
+function randomYuckSound() {
+	var i = lastYuckSound;
+	while(i == lastYuckSound) {
+		i = randInt(0, yuckSounds.length-1);
+	}
+	lastyuckSound = i;
+	return yuckSounds[i];
+}
+
 function newHole(x, y) {
 	if(holes.length > 0 && holes[holes.length-1].x == x) {
 		holes[holes.length-1].y2 = y;
@@ -296,7 +311,11 @@ function loop() {
 		foods[i].x = foods[i].x + dx;
 		foods[i].y = foods[i].y - 5;
 		if(square(foods[i].x - headX) + square(foods[i].y-120) < square(40)) {
-			randomEatSound().play();
+			if(foods[i].life < 0) {
+				randomYuckSound().play();
+			} else {
+				randomEatSound().play();
+			}
 			foods[i].y = FOOD_VANISH_Y;
 			life = life + foods[i].life;
 		}

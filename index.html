@@ -206,6 +206,23 @@ function randomEatSound() {
 	return eatSounds[i];
 }
 
+function newHole(x, y) {
+	if(holes.length > 0 && holes[holes.length-1].x == x) {
+		holes[holes.length-1].y2 = y;
+	} else {
+		holes.push({
+			x: x,
+			y1: y,
+		});
+		if(holes.length > 600) {
+			for(i = 0; i < 500; i++) {
+				holes[i] = holes[i+100];
+			}
+			holes.length = 500;
+		}
+	}
+}
+
 function loop() {
 	requestAnimationFrame(loop);
 
@@ -263,7 +280,8 @@ function loop() {
 
 	for(i = 0; i < holes.length; i++) {
 		holes[i].x = holes[i].x + dx;
-		holes[i].y = holes[i].y - 5;
+		holes[i].y1 = holes[i].y1 - 5;
+		holes[i].y2 = holes[i].y2 - 5;
 	}
 
 	var headX = canvas.width / 2;
@@ -290,10 +308,7 @@ function loop() {
 	}
 
 	const HOLE_RADIUS = 80;
-	holes.push({
-		x: canvas.width / 2-5,
-		y: digY+140,
-	});
+	newHole(canvas.width / 2-5, digY+140);
 
 	// Draw.
 	c.clearRect(0, 0, canvas.width, canvas.height);
@@ -307,9 +322,11 @@ function loop() {
 
 	for(i = 0; i < holes.length; i++) {
 		c.beginPath();
-		c.arc(holes[i].x, holes[i].y, HOLE_RADIUS, 0, 2*Math.PI, false);
+		c.arc(holes[i].x, holes[i].y1, HOLE_RADIUS, 0, 2*Math.PI, false);
+		c.arc(holes[i].x, holes[i].y2, HOLE_RADIUS, 0, 2*Math.PI, false);
 		c.fillStyle = "black";
 		c.fill();
+		c.fillRect(holes[i].x-HOLE_RADIUS, holes[i].y1, 2*HOLE_RADIUS, holes[i].y2-holes[i].y1);
 	}
 
 	for(i = 0; i < rocks.length; i++) {

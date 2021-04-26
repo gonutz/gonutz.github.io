@@ -97,6 +97,7 @@ yuckSounds[0] = loadSound("assets/yuck0.ogg");
 yuckSounds[1] = loadSound("assets/yuck1.ogg");
 yuckSounds[2] = loadSound("assets/yuck2.ogg");
 yuckSounds[3] = loadSound("assets/yuck3.ogg");
+puke = loadSound("assets/puke.ogg");
 music = loadSound("assets/back_music.ogg");
 
 // Some constants to tweak the game.
@@ -108,7 +109,7 @@ FOOD_VANISH_Y = -4000;
 ONION_FREQUENCY = 0.2;
 NEW_FOOD_TIME = 50;
 LIFE_PER_FRAME = -0.0005;
-//LIFE_PER_FRAME = -0.01; // -0.0005; // TODO For debugging vomit.
+//LIFE_PER_FRAME = -0.001; // -0.0005; // TODO For debugging vomit.
 LIFE_PER_ONION = -0.1;
 LIFE_PER_CAROT = 0.05;
 
@@ -238,7 +239,9 @@ function randomEatSound() {
 }
 
 lastYuckSound = -1;
+lastYuckTime = -9999;
 function randomYuckSound() {
+	lastYuckTime = time;
 	var i = lastYuckSound;
 	while(i == lastYuckSound) {
 		i = randInt(0, yuckSounds.length-1);
@@ -323,6 +326,9 @@ function loop() {
 	var rabbit = digFrames[digFrame];
 	if(dead) {
 		rabbit = deathFrames[deathFrameSequence[deathFrame]];
+		if(deathFrame == 17) {
+			puke.play();
+		}
 	}
 	var digY = canvas.height - 2.5*rabbit.height;
 
@@ -371,7 +377,9 @@ function loop() {
 	}
 	if(!dead && life == 0) {
 		music.pause();
-		randomYuckSound().play();
+		if(time > lastYuckTime + 5) {
+			randomYuckSound().play();
+		}
 		dead = true;
 		deathBackY = backY;
 		deathFrame = 0;

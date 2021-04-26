@@ -82,7 +82,7 @@ deathFrames[15] = loadImage("assets/puke15.png");
 deathFrames[16] = loadImage("assets/puke16.png");
 deathFrames[17] = loadImage("assets/puke17.png");
 deathFrames[18] = loadImage("assets/puke18.png");
-deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,16,16,16,17,17,17,17,18,18];
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
 lifeBar = loadImage("assets/life_bar_colored.png");
@@ -108,6 +108,7 @@ FOOD_VANISH_Y = -4000;
 ONION_FREQUENCY = 0.2;
 NEW_FOOD_TIME = 50;
 LIFE_PER_FRAME = -0.0005;
+//LIFE_PER_FRAME = -0.01; // -0.0005; // TODO For debugging vomit.
 LIFE_PER_ONION = -0.1;
 LIFE_PER_CAROT = 0.05;
 
@@ -336,10 +337,12 @@ function loop() {
 		}
 	}
 
-	for(i = 0; i < holes.length; i++) {
-		holes[i].x = holes[i].x + dx;
-		holes[i].y1 = holes[i].y1 - 5;
-		holes[i].y2 = holes[i].y2 - 5;
+	if(!dead) {
+		for(i = 0; i < holes.length; i++) {
+			holes[i].x = holes[i].x + dx;
+			holes[i].y1 = holes[i].y1 - 5;
+			holes[i].y2 = holes[i].y2 - 5;
+		}
 	}
 
 	var headX = canvas.width / 2;
@@ -426,8 +429,10 @@ function loop() {
 		c.drawImage(backgroundGradient, 0, y);
 	}
 
-	c.drawImage(deathBar, 0, 0);
-	c.drawImage(lifeBar, 0, 0, lifeBar.width*life, lifeBar.height, 0, 0, lifeBar.width*life, lifeBar.height);
+	if(dead || life > 0.2 || (time % 30) < 15) {
+		c.drawImage(deathBar, 0, 0);
+		c.drawImage(lifeBar, 0, 0, lifeBar.width*life, lifeBar.height, 0, 0, lifeBar.width*life, lifeBar.height);
+	}
 
 	time = time + 1;
 }

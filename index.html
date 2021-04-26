@@ -64,6 +64,8 @@ digFrames[8] = loadImage("assets/dig8.png");
 digFrames[9] = loadImage("assets/dig9.png");
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
+lifeBar = loadImage("assets/life_bar_colored.png");
+deathBar = loadImage("assets/life_bar_black_and_white.png");
 eatSounds = [];
 eatSounds[0] = loadSound("assets/eat0.ogg");
 eatSounds[1] = loadSound("assets/eat1.ogg");
@@ -75,9 +77,12 @@ GRAVITY = 0.25;
 X_MOVE_SPEED = 8;
 X_MOVE_FRAMES = 16;
 FOOD_START_Y = 1000;
-FOOD_VANISH_Y = -1000;
+FOOD_VANISH_Y = -4000;
 ONION_FREQUENCY = 0.2;
 NEW_FOOD_TIME = 50;
+LIFE_PER_FRAME = -0.0005;
+LIFE_PER_ONION = -0.1;
+LIFE_PER_CAROT = 0.05;
 
 moveDir = 0;
 nextMoveDir = 0;
@@ -92,6 +97,7 @@ nextRockIn = 0;
 holes = [];
 loadingTime = 0;
 food = [];
+life = 1.0;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -165,17 +171,19 @@ function newFood() {
 		y: FOOD_START_Y,
 	};
 	if(randInterval(0, 1) < ONION_FREQUENCY) {
+		food.life = LIFE_PER_ONION;
 		food.image = onion;
 		food.scale = randInterval(0.6, 0.8);
 		food.rotation = randInterval(-Math.PI/20, Math.PI/20);
 	} else {
+		food.life = LIFE_PER_CAROT;
 		food.image = carot;
 		food.scale = randInterval(0.5, 0.7);
 		food.rotation = randInterval(-Math.PI/2, 0);
 	}
 	// Reuse a food object that is not visible anymore. This saves some overhead.
 	for(i = 0; i < foods.length; i++) {
-		if(foods[i].y < FOOD_VANISH_Y) {
+		if(foods[i].y <= FOOD_VANISH_Y) {
 			foods[i] = food;
 			return;
 		}
@@ -263,11 +271,18 @@ function loop() {
 	for(i = 0; i < foods.length; i++) {
 		foods[i].x = foods[i].x + dx;
 		foods[i].y = foods[i].y - 5;
-		if(square(foods[i].x - headX) + square(foods[i].y - headY) < square(40)) {
-			// TODO increment score. And show it.
+		if(square(foods[i].x - headX) + square(foods[i].y-120) < square(40)) {
 			randomEatSound().play();
-			foods[i].y = -9999;
+			foods[i].y = FOOD_VANISH_Y;
+			life = life + foods[i].life;
 		}
+	}
+	life = life + LIFE_PER_FRAME;
+	if(life > 1) {
+		life = 1;
+	}
+	if(life < 0) {
+		life = 0;
 	}
 
 	if(time % NEW_FOOD_TIME == 0) {
@@ -319,6 +334,9 @@ function loop() {
 	for(y = 0; y < canvas.height; y = y + backgroundGradient.height) {
 		c.drawImage(backgroundGradient, 0, y);
 	}
+
+	c.drawImage(deathBar, 0, 0);
+	c.drawImage(lifeBar, 0, 0, lifeBar.width*life, lifeBar.height, 0, 0, lifeBar.width*life, lifeBar.height);
 
 	time = time + 1;
 }

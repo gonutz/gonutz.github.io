@@ -71,6 +71,7 @@ eatSounds[0] = loadSound("assets/eat0.ogg");
 eatSounds[1] = loadSound("assets/eat1.ogg");
 eatSounds[2] = loadSound("assets/eat2.ogg");
 eatSounds[3] = loadSound("assets/eat3.ogg");
+music = loadSound("assets/back_music.ogg");
 
 // Some constants to tweak the game.
 GRAVITY = 0.25;
@@ -236,6 +237,11 @@ function loop() {
 		c.fillText(text, (canvas.width-textW)/2, canvas.height/2);
 		loadingTime++;
 		return;
+	}
+
+	if(time == 0) {
+		music.loop = true;
+		music.play();
 	}
 
 	// Make the canvas fill the whole screen height.

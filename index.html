@@ -21,6 +21,8 @@ body {
 canvas = document.getElementById("c");
 c = canvas.getContext("2d");
 
+// Load images. We use a progress counter to keep track
+// of how many images have been loaded at startup.
 loadProgress = 0;
 function loadImage(source) {
 	loadProgress = loadProgress + 1;
@@ -50,20 +52,44 @@ digFrames[6] = loadImage("assets/dig6.png");
 digFrames[7] = loadImage("assets/dig7.png");
 digFrames[8] = loadImage("assets/dig8.png");
 digFrames[9] = loadImage("assets/dig9.png");
+carot = loadImage("assets/carot.png");
+onion = loadImage("assets/onion.png");
 
-LEFT_KEY = 37;
-UP_KEY = 38;
-RIGHT_KEY = 39;
-DOWN_KEY = 40;
+// Some constants to tweak the game.
+GRAVITY = 0.25;
+X_MOVE_SPEED = 8;
+X_MOVE_FRAMES = 16;
+FOOD_START_Y = 1000;
+FOOD_VANISH_Y = -1000;
+ONION_FREQUENCY = 0.2;
+NEW_FOOD_TIME = 50;
+
 moveDir = 0;
+nextMoveDir = 0;
 moveFrames = 0;
+rocks = [];
+foods = [];
+time = 0;
+backX = 0;
+digFrame = 9999;
+backFrame = 9999;
+nextRockIn = 0;
+holes = [];
+loadingTime = 0;
+food = [];
+
 function move(dir) {
 	if(moveFrames == 0) {
 		moveDir = dir;
-		moveFrames = 16;
+		moveFrames = X_MOVE_FRAMES;
+	} else {
+		nextMoveDir = dir;
 	}
 }
 document.addEventListener("keydown", function(e) {
+	LEFT_KEY = 37;
+	RIGHT_KEY = 39;
+
 	if (e.which === LEFT_KEY) {
 		move(-1);
 	}
@@ -78,6 +104,10 @@ document.addEventListener("mousedown", function(e) {
 		move(1);
 	}
 });
+
+function randInt(min, max) {
+	return min + Math.floor(Math.random() * (max-min+1));
+}
 
 function randInterval(min, max) {
 	return min + Math.random()*(max-min);
@@ -113,15 +143,32 @@ function newRock() {
 	rocks.push(rock);
 }
 
-time = 0;
-backX = 0;
-digFrame = 9999;
-backFrame = 9999;
-rocks = [];
-nextRockIn = 0;
-GRAVITY = 0.25;
-holes = [];
-loadingTime = 0;
+function newFood() {
+	centerX = canvas.width/2 + moveFrames * moveDir * X_MOVE_SPEED;
+	food = {
+		x: centerX + randInt(-2, 2) * X_MOVE_SPEED * X_MOVE_FRAMES,
+		y: FOOD_START_Y,
+	};
+	console.log(food.x);
+	if(randInterval(0, 1) < ONION_FREQUENCY) {
+		food.image = onion;
+		food.scale = randInterval(0.6, 0.8);
+		food.rotation = randInterval(-Math.PI/20, Math.PI/20);
+	} else {
+		food.image = carot;
+		food.scale = randInterval(0.5, 0.7);
+		food.rotation = randInterval(-Math.PI/2, 0);
+	}
+	// Reuse a food object that is not visible anymore. This saves some overhead.
+	for(i = 0; i < foods.length; i++) {
+		if(foods[i].y < FOOD_VANISH_Y) {
+			foods[i] = food;
+			return;
+		}
+	}
+	// Only enlarge the array if all foods are still visible.
+	foods.push(food);
+}
 
 function loop() {
 	requestAnimationFrame(loop);
@@ -138,12 +185,14 @@ function loop() {
 		return;
 	}
 
+	// Make the canvas fill the whole screen height.
 	canvas.height = window.innerHeight;
 
 	// Update animations.
 	if(time % 4 == 0) {
-		digFrame = (digFrame + 1) % 10;
+		digFrame = (digFrame + 1) % digFrames.length;
 	}
+
 	nextRockIn = nextRockIn - 1;
 	if(nextRockIn <= 0) {
 		newRock();
@@ -161,19 +210,32 @@ function loop() {
 	digImg = digFrames[digFrame];
 	digY = canvas.height - 2.5*digImg.height;
 
-	dx = -moveDir * 8;
+	dx = -moveDir * X_MOVE_SPEED;
 	backX = backX + dx;
 
 	if(moveFrames > 0) {
 		moveFrames--;
 		if(moveFrames == 0) {
-			moveDir = 0;
+			moveDir = nextMoveDir;
+			if(moveDir != 0) {
+				moveFrames = X_MOVE_FRAMES;
+			}
+			nextMoveDir = 0;
 		}
 	}
 
 	for(i = 0; i < holes.length; i++) {
 		holes[i].x = holes[i].x + dx;
 		holes[i].y = holes[i].y - 5;
+	}
+
+	for(i = 0; i < foods.length; i++) {
+		foods[i].x = foods[i].x + dx;
+		foods[i].y = foods[i].y - 5;
+	}
+
+	if(time % NEW_FOOD_TIME == 0) {
+		newFood();
 	}
 
 	// Draw.
@@ -206,6 +268,14 @@ function loop() {
 		c.rotate(rocks[i].rotation);
 		c.scale(rocks[i].scale, rocks[i].scale);
 		c.drawImage(rockImages[r.index], -rockImages[r.index].width/2, -rockImages[r.index].height/2);
+		c.setTransform(1, 0, 0, 1, 0, 0);
+	}
+
+	for(i = 0; i < foods.length; i++) {
+		c.translate(foods[i].x, digY + foods[i].y);
+		c.rotate(foods[i].rotation);
+		c.scale(foods[i].scale, foods[i].scale);
+		c.drawImage(foods[i].image, -foods[i].image.width/2, -foods[i].image.height/2);
 		c.setTransform(1, 0, 0, 1, 0, 0);
 	}
 

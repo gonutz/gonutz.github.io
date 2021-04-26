@@ -21,17 +21,27 @@ body {
 canvas = document.getElementById("c");
 c = canvas.getContext("2d");
 
-// Load images. We use a progress counter to keep track
-// of how many images have been loaded at startup.
+// Load images and sounds.
+// We use a progress counter to keep track of
+// how many resources have been loaded at startup.
 loadProgress = 0;
 function loadImage(source) {
-	loadProgress = loadProgress + 1;
-	image = new Image();
+	loadProgress++;
+	var image = new Image();
 	image.src = source;
 	image.addEventListener("load", function () {
-		loadProgress = loadProgress - 1;
+		loadProgress--;
 	});
 	return image;
+}
+function loadSound(source) {
+	loadProgress++;
+	var sound = new Audio();
+	sound.src = source;
+	sound.addEventListener("canplaythrough", function() {
+		loadProgress--;
+	});
+	return sound;
 }
 background = loadImage("assets/background.jpg");
 backgroundGradient = loadImage("assets/gradient.png");
@@ -54,6 +64,11 @@ digFrames[8] = loadImage("assets/dig8.png");
 digFrames[9] = loadImage("assets/dig9.png");
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
+eatSounds = [];
+eatSounds[0] = loadSound("assets/eat0.ogg");
+eatSounds[1] = loadSound("assets/eat1.ogg");
+eatSounds[2] = loadSound("assets/eat2.ogg");
+eatSounds[3] = loadSound("assets/eat3.ogg");
 
 // Some constants to tweak the game.
 GRAVITY = 0.25;
@@ -122,7 +137,7 @@ function randSign() {
 }
 
 function newRock() {
-	rock = {
+	var rock = {
 		index: Math.floor(Math.random() * rockImages.length),
 		x: randInterval(-20, 20),
 		y: 100,
@@ -144,12 +159,11 @@ function newRock() {
 }
 
 function newFood() {
-	centerX = canvas.width/2 + moveFrames * moveDir * X_MOVE_SPEED;
-	food = {
+	var centerX = canvas.width/2 + moveFrames * moveDir * X_MOVE_SPEED;
+	var food = {
 		x: centerX + randInt(-2, 2) * X_MOVE_SPEED * X_MOVE_FRAMES,
 		y: FOOD_START_Y,
 	};
-	console.log(food.x);
 	if(randInterval(0, 1) < ONION_FREQUENCY) {
 		food.image = onion;
 		food.scale = randInterval(0.6, 0.8);
@@ -170,6 +184,20 @@ function newFood() {
 	foods.push(food);
 }
 
+function square(x) {
+	return x*x;
+}
+
+lastEatSound = -1;
+function randomEatSound() {
+	var i = lastEatSound;
+	while(i == lastEatSound) {
+		i = randInt(0, eatSounds.length-1);
+	}
+	lastEatSound = i;
+	return eatSounds[i];
+}
+
 function loop() {
 	requestAnimationFrame(loop);
 
@@ -178,8 +206,8 @@ function loop() {
 		c.font = "50px Arial";
 		c.fillStyle = "#FF00FF";
 		c.textAlign = "left";
-		textW = c.measureText("Loading..").width;
-		text = "Loading" + ".".repeat((loadingTime/25)%4);
+		var textW = c.measureText("Loading..").width;
+		var text = "Loading" + ".".repeat((loadingTime/25)%4);
 		c.fillText(text, (canvas.width-textW)/2, canvas.height/2);
 		loadingTime++;
 		return;
@@ -189,6 +217,10 @@ function loop() {
 	canvas.height = window.innerHeight;
 
 	// Update animations.
+	var dx = -moveDir * X_MOVE_SPEED;
+	backX = backX + dx;
+	backX = (backX+background.width) % background.width - background.width;
+
 	if(time % 4 == 0) {
 		digFrame = (digFrame + 1) % digFrames.length;
 	}
@@ -202,16 +234,13 @@ function loop() {
 		rocks[i].rotation = rocks[i].rotation + rocks[i].rotationSpeed;
 		rocks[i].scale = rocks[i].scale * 0.99;
 		rocks[i].rotationSpeed = rocks[i].rotationSpeed * 0.98;
-		rocks[i].x = rocks[i].x + rocks[i].xSpeed;
+		rocks[i].x = rocks[i].x + rocks[i].xSpeed + dx;
 		rocks[i].y = rocks[i].y + rocks[i].ySpeed;
 		rocks[i].ySpeed = rocks[i].ySpeed + GRAVITY;
 	}
 
-	digImg = digFrames[digFrame];
-	digY = canvas.height - 2.5*digImg.height;
-
-	dx = -moveDir * X_MOVE_SPEED;
-	backX = backX + dx;
+	var digImg = digFrames[digFrame];
+	var digY = canvas.height - 2.5*digImg.height;
 
 	if(moveFrames > 0) {
 		moveFrames--;
@@ -229,31 +258,37 @@ function loop() {
 		holes[i].y = holes[i].y - 5;
 	}
 
+	var headX = canvas.width / 2;
+	var headY = digY - 50;
 	for(i = 0; i < foods.length; i++) {
 		foods[i].x = foods[i].x + dx;
 		foods[i].y = foods[i].y - 5;
+		if(square(foods[i].x - headX) + square(foods[i].y - headY) < square(40)) {
+			// TODO increment score. And show it.
+			randomEatSound().play();
+			foods[i].y = -9999;
+		}
 	}
 
 	if(time % NEW_FOOD_TIME == 0) {
 		newFood();
 	}
 
+	const HOLE_RADIUS = 80;
+	holes.push({
+		x: canvas.width / 2-5,
+		y: digY+140,
+	});
+
 	// Draw.
 	c.clearRect(0, 0, canvas.width, canvas.height);
 
-	backY = -(5*time % background.height);
-	backX = (backX+background.width) % background.width - background.width;
+	var backY = -(5*time % background.height);
 	for(y = backY; y < canvas.height; y = y + background.height) {
 		for(x = backX; x < canvas.width; x = x + background.width) {
 			c.drawImage(background, x, y);
 		}
 	}
-
-	HOLE_RADIUS = 80;
-	holes.push({
-		x: canvas.width / 2-5,
-		y: digY+140,
-	});
 
 	for(i = 0; i < holes.length; i++) {
 		c.beginPath();

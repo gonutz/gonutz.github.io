@@ -101,6 +101,7 @@ yuckSounds[2] = loadSound("assets/yuck2.ogg");
 yuckSounds[3] = loadSound("assets/yuck3.ogg");
 puke = loadSound("assets/puke.ogg");
 music = loadSound("assets/back_music.ogg");
+music.loop = true;
 
 // Some constants to tweak the game.
 GRAVITY = 0.25;
@@ -302,9 +303,8 @@ function loop() {
 		moveDir = 0;
 	}
 
-	if(time == 0) {
-		music.loop = true;
-		music.play();
+	if(time == 0 || !music.paused) {
+		music.play().catch(function(e) {});
 	}
 
 	if(!starting && time >= nextYSpeedIncreaseTime) {

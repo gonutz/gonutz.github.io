@@ -303,7 +303,7 @@ function loop() {
 		moveDir = 0;
 	}
 
-	if(time == 0 || !music.paused) {
+	if(music.paused) {
 		music.play().catch(function(e) {});
 	}
 

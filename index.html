@@ -137,6 +137,7 @@ nextYSpeedIncreaseTime = 300;
 ySpeedAcceleration = 300;
 starting = true;
 startFrame = 0;
+score = -1;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -416,6 +417,7 @@ function loop() {
 		dead = true;
 		deathBackY = backY;
 		deathFrame = 0;
+		score = time;
 	}
 
 	if(!starting && !dead && time % NEW_FOOD_TIME == 0) {
@@ -475,6 +477,8 @@ function loop() {
 		c.drawImage(lifeBar, 0, 0, lifeBar.width*life, lifeBar.height, 0, 0, lifeBar.width*life, lifeBar.height);
 	}
 
+
+	const lineHeight = 60;
 	if(starting) {
 		var fontBreath = (time/50)%10-5;
 		if(fontBreath < 0) {
@@ -492,7 +496,6 @@ function loop() {
 		c.fillText(text, x, y);
 
 		const showDelay = 50;
-		const lineHeight = 60;
 		lines = [
 			"To Enjoy Please:",
 			"✓ Allow Sound",
@@ -512,8 +515,34 @@ function loop() {
 		}
 
 		if(time > showDelay * (1+lines.length) && time%40<30) {
+			c.font = "60px Arial";
 			text = "Move to Start";
-			y = digY + 300 + (1+lines.length)*lineHeight;
+			y = digY + 300 + (0.5+lines.length)*lineHeight;
+			c.strokeText(text, x, y);
+			c.fillText(text, x, y);
+		}
+	}
+
+	if(dead) {
+		var fontBreath = (time/40)%14-7;
+		if(fontBreath < 0) {
+			fontBreath = -fontBreath;
+		}
+		c.font = (80+fontBreath)+"px Arial";
+		c.fillStyle = "#725144";
+		c.strokeStyle = "#B7816E";
+		c.lineWidth = 2;
+		c.textAlign = "center";
+		var text = "Your Score: " + score;
+		var x = canvas.width/2;
+		var y = digY + 500;
+		c.strokeText(text, x, y);
+		c.fillText(text, x, y);
+
+		if(time > score + 100 && (time-score-100)%100<80) {
+			c.font = "60px Arial";
+			text = "F5 Restart (Page Refresh)";
+			y = digY + 300 + 6.5*lineHeight;
 			c.strokeText(text, x, y);
 			c.fillText(text, x, y);
 		}

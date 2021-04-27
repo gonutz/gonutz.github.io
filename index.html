@@ -83,6 +83,8 @@ deathFrames[16] = loadImage("assets/puke16.png");
 deathFrames[17] = loadImage("assets/puke17.png");
 deathFrames[18] = loadImage("assets/puke18.png");
 deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,16,16,16,17,17,17,17,18,18,18,18,18,18,18,18];
+startFrameSequence = [0,0,0,1,1,1,2,2,2,1,1,1];
+startFrameSequence = [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1];
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
 lifeBar = loadImage("assets/life_bar_colored.png");
@@ -120,19 +122,21 @@ foods = [];
 time = 0;
 backX = 0;
 backY = 0;
-digFrame = 9999;
+digFrame = 0;
 deathFrame = 9999;
 backFrame = 9999;
 nextRockIn = 0;
 holes = [];
-loadingTime = 0;
+loadTime = 0;
 food = [];
 life = 1.0;
 dead = false;
 deathBackY = 0;
-ySpeed = 1;
+ySpeed = 0;
 nextYSpeedIncreaseTime = 300;
 ySpeedAcceleration = 300;
+starting = true;
+startFrame = 0;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -284,10 +288,17 @@ function loop() {
 		c.fillStyle = "#FF00FF";
 		c.textAlign = "left";
 		var textW = c.measureText("Loading..").width;
-		var text = "Loading" + ".".repeat((loadingTime/25)%4);
+		var text = "Loading" + ".".repeat((loadTime/25)%4);
 		c.fillText(text, (canvas.width-textW)/2, canvas.height/2);
-		loadingTime++;
+		loadTime++;
 		return;
+	}
+
+	if(starting && moveDir != 0) {
+		ySpeed = 1;
+		starting = false;
+		time = 1;
+		moveDir = 0;
 	}
 
 	if(time == 0) {
@@ -295,7 +306,7 @@ function loop() {
 		music.play();
 	}
 
-	if(time >= nextYSpeedIncreaseTime) {
+	if(!starting && time >= nextYSpeedIncreaseTime) {
 		ySpeed++;
 		nextYSpeedIncreaseTime = nextYSpeedIncreaseTime + ySpeedAcceleration;
 		ySpeedAcceleration = ySpeedAcceleration + 50;
@@ -315,14 +326,16 @@ function loop() {
 	backY = backY % background.height;
 
 	if(time % 4 == 0) {
-		if(dead) {
+		if(starting) {
+			startFrame = (startFrame + 1) % startFrameSequence.length;
+		} else if(dead) {
 			deathFrame = (deathFrame + 1) % deathFrameSequence.length;
 		} else {
 			digFrame = (digFrame + 1) % digFrames.length;
 		}
 	}
 
-	if(!dead) {
+	if(!starting && !dead) {
 		nextRockIn = nextRockIn - 1;
 		if(nextRockIn <= 0) {
 			newRock();
@@ -339,6 +352,9 @@ function loop() {
 	}
 
 	var rabbit = digFrames[digFrame];
+	if(starting) {
+		rabbit = deathFrames[startFrameSequence[startFrame]];
+	}
 	if(dead) {
 		rabbit = deathFrames[deathFrameSequence[deathFrame]];
 		if(deathFrame == 17) {
@@ -358,7 +374,7 @@ function loop() {
 		}
 	}
 
-	if(!dead) {
+	if(!starting && !dead) {
 		for(i = 0; i < holes.length; i++) {
 			holes[i].x = holes[i].x + dx;
 			holes[i].y1 = holes[i].y1 - ySpeed;
@@ -368,7 +384,7 @@ function loop() {
 
 	var headX = canvas.width / 2;
 	var headY = digY - 50;
-	if(!dead) {
+	if(!starting && !dead) {
 		for(i = 0; i < foods.length; i++) {
 			foods[i].x = foods[i].x + dx;
 			foods[i].y = foods[i].y - ySpeed;
@@ -383,7 +399,9 @@ function loop() {
 			}
 		}
 	}
-	life = life + LIFE_PER_FRAME;
+	if(!starting) {
+		life = life + LIFE_PER_FRAME;
+	}
 	if(life > 1) {
 		life = 1;
 	}
@@ -400,7 +418,7 @@ function loop() {
 		deathFrame = 0;
 	}
 
-	if(!dead && time % NEW_FOOD_TIME == 0) {
+	if(!starting && !dead && time % NEW_FOOD_TIME == 0) {
 		newFood();
 	}
 
@@ -455,6 +473,50 @@ function loop() {
 	if(dead || life > 0.2 || (time % 30) < 15) {
 		c.drawImage(deathBar, 0, 0);
 		c.drawImage(lifeBar, 0, 0, lifeBar.width*life, lifeBar.height, 0, 0, lifeBar.width*life, lifeBar.height);
+	}
+
+	if(starting) {
+		var fontBreath = (time/50)%10-5;
+		if(fontBreath < 0) {
+			fontBreath = -fontBreath;
+		}
+		c.font = (80+fontBreath)+"px Arial";
+		c.fillStyle = "#725144";
+		c.strokeStyle = "#B7816E";
+		c.lineWidth = 2;
+		c.textAlign = "center";
+		var text = "Dig Deeper & Digger";
+		var x = canvas.width/2;
+		var y = digY - 20;
+		c.strokeText(text, x, y);
+		c.fillText(text, x, y);
+
+		const showDelay = 50;
+		const lineHeight = 60;
+		lines = [
+			"To Enjoy Please:",
+			"✓ Allow Sound",
+			"✓ Fullscreen Mode",
+			"🠔 Keys to Move 🠖",
+			"🠔 Or Click 🠖",
+			"F5 Restart (Page Refresh)",
+		];
+		c.font = "50px Arial";
+		for(i = 0; i < lines.length; i++) {
+			if(time > (i+1)*showDelay ) {
+				text = lines[i];
+				y = digY + 300 + i*lineHeight;
+				c.strokeText(text, x, y);
+				c.fillText(text, x, y);
+			}
+		}
+
+		if(time > showDelay * (1+lines.length) && time%40<30) {
+			text = "Move to Start";
+			y = digY + 300 + (1+lines.length)*lineHeight;
+			c.strokeText(text, x, y);
+			c.fillText(text, x, y);
+		}
 	}
 
 	time = time + 1;

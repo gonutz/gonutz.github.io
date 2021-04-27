@@ -139,6 +139,9 @@ ySpeedAcceleration = 300;
 starting = true;
 startFrame = 0;
 score = -1;
+mouseX = 0;
+mouseY = 0;
+mouseInLudumDareLink = false;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -160,11 +163,22 @@ document.addEventListener("keydown", function(e) {
 	}
 });
 document.addEventListener("mousedown", function(e) {
-	if(e.offsetX < canvas.width/2) {
+	if(mouseInLudumDareLink) {
+		window.open("https://ldjam.com/events/ludum-dare/48/dig-deeper-digger");
+	} else if(e.offsetX < canvas.width/2) {
 		move(-1);
 	} else {
 		move(1);
 	}
+});
+canvas.addEventListener("mousemove", function(e) {
+	// Compute mouse position relative to the canvas.
+	if (e.layerX || e.layerX == 0) {
+		mouseX = e.layerX;
+		mouseY = e.layerY;
+	}
+	mouseX -= canvas.offsetLeft;
+	mouseY -= canvas.offsetTop;
 });
 
 function randInt(min, max) {
@@ -546,6 +560,36 @@ function loop() {
 			c.strokeText(text, x, y);
 			c.fillText(text, x, y);
 		}
+	}
+
+	mouseInLudumDareLink = false;
+	if(starting || dead) {
+		c.strokeStyle = "#725144";
+		c.fillStyle = "#725144";
+		var text = "Rate this Game on Ludum Dare";
+		c.font = "italic 20px Arial";
+		var textW = c.measureText(text).width;
+		var left = x - textW/2;
+		var right = x + textW/2;
+		y = digY + 300 + (7.2)*lineHeight;
+		document.body.style.cursor = "";
+		mouseInLudumDareLink = left <= mouseX && mouseX <= right && y-25 <= mouseY && mouseY < y+10;
+		if(mouseInLudumDareLink) {
+			c.font = "italic 24px Arial";
+			textW = c.measureText(text).width;
+			left = x - textW/2;
+			right = x + textW/2;
+			c.strokeStyle = "#B7816E";
+			c.fillStyle = "#B7816E";
+			document.body.style.cursor = "pointer";
+		}
+		c.fillText(text, x, y);
+		// Underline this link.
+		c.beginPath();
+		c.lineWidth = 2;
+		c.moveTo(left, y+3);
+		c.lineTo(right, y+3);
+		c.stroke();
 	}
 
 	time = time + 1;

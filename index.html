@@ -82,7 +82,7 @@ deathFrames[15] = loadImage("assets/puke15.png");
 deathFrames[16] = loadImage("assets/puke16.png");
 deathFrames[17] = loadImage("assets/puke17.png");
 deathFrames[18] = loadImage("assets/puke18.png");
-deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,16,16,16,17,17,17,17,18,18];
+deathFrameSequence = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,4,5,5,5,5,5,4,3,3,3,4,5,5,5,5,5,4,3,3,3,4,5,6,7,8,9,10,11,12,13,14,15,16,16,16,16,17,17,17,17,18,18,18,18,18,18,18,18];
 carot = loadImage("assets/carot.png");
 onion = loadImage("assets/onion.png");
 lifeBar = loadImage("assets/life_bar_colored.png");
@@ -109,7 +109,6 @@ FOOD_VANISH_Y = -4000;
 ONION_FREQUENCY = 0.2;
 NEW_FOOD_TIME = 50;
 LIFE_PER_FRAME = -0.0005;
-//LIFE_PER_FRAME = -0.001; // -0.0005; // TODO For debugging vomit.
 LIFE_PER_ONION = -0.1;
 LIFE_PER_CAROT = 0.05;
 
@@ -120,6 +119,7 @@ rocks = [];
 foods = [];
 time = 0;
 backX = 0;
+backY = 0;
 digFrame = 9999;
 deathFrame = 9999;
 backFrame = 9999;
@@ -130,6 +130,9 @@ food = [];
 life = 1.0;
 dead = false;
 deathBackY = 0;
+ySpeed = 1;
+nextYSpeedIncreaseTime = 300;
+ySpeedAcceleration = 300;
 
 function move(dir) {
 	if(moveFrames == 0) {
@@ -267,6 +270,11 @@ function newHole(x, y) {
 	}
 }
 
+// Start out in a deep hole.
+for(i = -1000; i <= 0; i = i+5) {
+	newHole(canvas.width / 2-5, canvas.height - 2.5*300+140+i);
+}
+
 function loop() {
 	requestAnimationFrame(loop);
 
@@ -287,6 +295,12 @@ function loop() {
 		music.play();
 	}
 
+	if(time >= nextYSpeedIncreaseTime) {
+		ySpeed++;
+		nextYSpeedIncreaseTime = nextYSpeedIncreaseTime + ySpeedAcceleration;
+		ySpeedAcceleration = ySpeedAcceleration + 50;
+	}
+
 	// Make the canvas fill the whole screen height.
 	canvas.height = window.innerHeight;
 
@@ -297,7 +311,8 @@ function loop() {
 	}
 	backX = backX + dx;
 	backX = (backX+background.width) % background.width - background.width;
-	var backY = -(5*time % background.height);
+	backY = backY - ySpeed;
+	backY = backY % background.height;
 
 	if(time % 4 == 0) {
 		if(dead) {
@@ -311,7 +326,7 @@ function loop() {
 		nextRockIn = nextRockIn - 1;
 		if(nextRockIn <= 0) {
 			newRock();
-			nextRockIn = randInterval(1, 4);
+			nextRockIn = randInterval(8-ySpeed, 12-ySpeed);
 		}
 	}
 	for(i = 0; i < rocks.length; i++) {
@@ -346,8 +361,8 @@ function loop() {
 	if(!dead) {
 		for(i = 0; i < holes.length; i++) {
 			holes[i].x = holes[i].x + dx;
-			holes[i].y1 = holes[i].y1 - 5;
-			holes[i].y2 = holes[i].y2 - 5;
+			holes[i].y1 = holes[i].y1 - ySpeed;
+			holes[i].y2 = holes[i].y2 - ySpeed;
 		}
 	}
 
@@ -356,7 +371,7 @@ function loop() {
 	if(!dead) {
 		for(i = 0; i < foods.length; i++) {
 			foods[i].x = foods[i].x + dx;
-			foods[i].y = foods[i].y - 5;
+			foods[i].y = foods[i].y - ySpeed;
 			if(square(foods[i].x - headX) + square(foods[i].y-120) < square(40)) {
 				if(foods[i].life < 0) {
 					randomYuckSound().play();

@@ -317,7 +317,7 @@ function loop() {
 		moveDir = 0;
 	}
 
-	if(music.paused) {
+	if(!dead && music.paused) {
 		music.play().catch(function(e) {});
 	}
 
@@ -513,7 +513,7 @@ function loop() {
 		lines = [
 			"To Enjoy Please:",
 			"✓ Allow Sound",
-			"✓ Fullscreen Mode",
+			"✓ Fullscreen Mode (F11)",
 			"← Keys to Move →",
 			"← Or Click →",
 			"F5 Restart (Page Refresh)",

@@ -87,11 +87,9 @@ function shuffle_cards() {
         "shamrock.jpeg",
     ];
 
-    console.log(cards.length);
-
     for(let i = 0; i < cards.length; i++) {
-        let max = cards.length - 1 - i;
-        let j = Math.floor(Math.random() * max);
+        let max = cards.length - i;
+        let j = i + Math.floor(Math.random() * max);
         var temp = cards[i];
         cards[i] = cards[j];
         cards[j] = temp;
@@ -99,7 +97,7 @@ function shuffle_cards() {
 }
 
 function click_card() {
-    if(cards.length === 0) {
+    if(cards.length == 0) {
         shuffle_cards()
     }
 
@@ -108,8 +106,8 @@ function click_card() {
 
     setTimeout(
         function() {
-    card_image.src = cards[0];
-    cards = cards.slice(1);
+            card_image.src = cards[0];
+            cards = cards.slice(1);
         },
         500,
     );

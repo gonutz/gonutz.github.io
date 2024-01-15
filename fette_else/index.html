@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+<head>
+<title>Fette Else</title>
+<meta charset="utf-8">
+
+<style>
+
+img {
+    border-radius: 5%;
+}
+
+.card {
+    margin: auto;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+</style>
+
+<img src="cover.jpeg" id="card" alt="Fett" class="card" onclick="click_card()">
+
+<script>
+
+var cards = [];
+
+function shuffle_cards() {
+    cards = [
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "stop.jpeg",
+        "fireworks.jpeg",
+        "fireworks.jpeg",
+        "fireworks.jpeg",
+        "fireworks.jpeg",
+        "fireworks.jpeg",
+        "double.jpeg",
+        "double.jpeg",
+        "double.jpeg",
+        "double.jpeg",
+        "double.jpeg",
+        "street.jpeg",
+        "street.jpeg",
+        "street.jpeg",
+        "street.jpeg",
+        "street.jpeg",
+        "plus_minus.jpeg",
+        "plus_minus.jpeg",
+        "plus_minus.jpeg",
+        "plus_minus.jpeg",
+        "plus_minus.jpeg",
+        "bonus_200.jpeg",
+        "bonus_200.jpeg",
+        "bonus_200.jpeg",
+        "bonus_200.jpeg",
+        "bonus_200.jpeg",
+        "bonus_300.jpeg",
+        "bonus_300.jpeg",
+        "bonus_300.jpeg",
+        "bonus_300.jpeg",
+        "bonus_300.jpeg",
+        "bonus_400.jpeg",
+        "bonus_400.jpeg",
+        "bonus_400.jpeg",
+        "bonus_400.jpeg",
+        "bonus_400.jpeg",
+        "bonus_500.jpeg",
+        "bonus_500.jpeg",
+        "bonus_500.jpeg",
+        "bonus_500.jpeg",
+        "bonus_500.jpeg",
+        "bonus_600.jpeg",
+        "bonus_600.jpeg",
+        "bonus_600.jpeg",
+        "bonus_600.jpeg",
+        "bonus_600.jpeg",
+        "shamrock.jpeg",
+    ];
+
+    console.log(cards.length);
+
+    for(let i = 0; i < cards.length; i++) {
+        let max = cards.length - 1 - i;
+        let j = Math.floor(Math.random() * max);
+        var temp = cards[i];
+        cards[i] = cards[j];
+        cards[j] = temp;
+    }
+}
+
+function click_card() {
+    if(cards.length === 0) {
+        shuffle_cards()
+    }
+
+    const card_image = document.getElementById("card");
+    card_image.src = "";
+
+    setTimeout(
+        function() {
+    card_image.src = cards[0];
+    cards = cards.slice(1);
+        },
+        500,
+    );
+}
+
+</script>
+
+</body>
+</html>
+

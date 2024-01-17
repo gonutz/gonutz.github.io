@@ -113,6 +113,12 @@ function click_card() {
     );
 }
 
+document.addEventListener('keydown', (e) => {
+    if(e.code == "Space" || e.code == "Enter") {
+        click_card();
+    }
+});
+
 </script>
 
 </body>

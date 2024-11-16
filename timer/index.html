@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timer</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+        }
+        input[type="number"] {
+            font-size: 24px;
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+        .blink-red {
+            background-color: red;
+        }
+        .blink-white {
+            background-color: white;
+        }
+        .running {
+            background-color: lightgreen;
+        }
+        .stopped {
+            background-color: white;
+        }
+    </style>
+</head>
+<body class="stopped">
+    <div class="container">
+        <input type="number" id="timerInput" name="timerInput" min="1" value="60">
+        <br>
+        <button onclick="startTimer()">Start</button>
+    </div>
+    <script>
+        const timerInput = document.getElementById('timerInput');
+        let storedTime = localStorage.getItem('timerInputValue') || 60;
+        timerInput.value = storedTime;
+
+        timerInput.addEventListener('change', () => {
+            localStorage.setItem('timerInputValue', timerInput.value);
+            storedTime = timerInput.value;
+        });
+
+        let countdown;
+
+        timerInput.addEventListener('focus', () => {
+            if (countdown) {
+                clearInterval(countdown);
+                countdown = null;
+                document.body.classList.remove('running');
+                document.body.classList.add('stopped');
+            }
+        });
+
+        function startTimer() {
+            let timeLeft = parseInt(storedTime);
+            timerInput.value = timeLeft; // Immediately reset the number to the stored value
+
+            if (countdown) {
+                clearInterval(countdown);
+            }
+
+            document.body.classList.remove('stopped');
+            document.body.classList.add('running');
+
+            countdown = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    document.body.classList.remove('running');
+                    blinkScreen();
+                } else {
+                    timeLeft--;
+                    timerInput.value = timeLeft;
+                }
+            }, 1000);
+        }
+
+        function blinkScreen() {
+            let count = 0;
+            const blinkInterval = setInterval(() => {
+                document.body.classList.toggle('blink-red');
+                count++;
+                if (count >= 10) {
+                    clearInterval(blinkInterval);
+                    document.body.classList.add('blink-white');
+                    document.body.classList.remove('blink-red');
+                }
+            }, 250); // Blink twice per second (every 250ms)
+        }
+    </script>
+</body>
+</html>

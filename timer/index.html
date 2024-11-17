@@ -46,6 +46,8 @@
         <button onclick="startTimer()">Start</button>
     </div>
     <script>
+        try { navigator.wakeLock.request("screen"); } catch(err) {}
+
         const timerInput = document.getElementById('timerInput');
         let storedTime = localStorage.getItem('timerInputValue') || 60;
         timerInput.value = storedTime;

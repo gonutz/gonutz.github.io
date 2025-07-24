@@ -2,23 +2,89 @@
 <head>
 <meta charset="UTF-8">
 <title>gonutz games</title>
+<link rel="icon" type="image/png" href="gopher.png">
+<style>
+:root {
+	--header-size: 3em;
+}
+@font-face {
+	font-family: "Go-Mono";
+	src: url("Go-Mono.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+body {
+	font-family: "Go-Mono";
+	background-color: #021526;
+	color: #E2E2B6;
+}
+a:link {
+	color: #E2E2B6;
+}
+a:visited {
+	color: #6EACDA;
+}
+a:hover {
+	color: #6EACDA;
+}
+a:active {
+	color: #03346E;
+}
+.header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: var(--header-size);
+	background-color: #03346E;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+}
+.content {
+	margin-top: var(--header-size);
+}
+.linklist {
+	list-style: none;
+}
+.linklist li {
+	margin: 0.5em 0;
+}
+</style>
 </head>
 <body>
 
-<div>
-<h1>Blog</h1>
-<a href="https://gist.github.com/gonutz/bcc89f0474fae455f4c05943f08d615d">Readability is Paramount</a><br>
-<a href="https://gist.github.com/gonutz/7c824582411b470b8292fac7cf282fe6">Cleaner Code</a><br>
+<div class="header">
+<h2>gonutz</h2>&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://github.com/gonutz">GitHub</a>&nbsp;&nbsp;
+<a href="https://www.twitch.tv/schmonutz">Twitch</a>
 </div>
+
+<div class="content">
+
+<br>
 
 <div>
 <h1>Games and Projects</h1>
-<a href="ld39/">Breathless Parks (Ludum Dare 39 entry, theme: "Running out of Power"</a><br>
-<a href="ld41/">No-Brain Jogging (Ludum Dare 41 entry, theme: "Combine Two Incompatible Genres")</a><br>
-<a href="ld46/">Keep the Rectangle Alive (Ludum Dare 46 entry, theme: "Keep it Alive")</a><br>
-<a href="ld48/">Ludum Dare 48 entry, theme: "Deeper and Deeper"</a><br>
-<a href="fette_else/">Fette Else</a><br>
-<a href="timer/">Timer</a>
+<ul class="linklist">
+	<li>&#xF800; <a href="flappy/">Work in Progress: Flappy Bird Clone (see Twitch, Press F2 to restart)</a></li></li>
+	<li>&#xF800; <a href="ld39/">Breathless Parks (Ludum Dare 39 entry, theme: "Running out of Power"</a></li></li>
+	<li>&#xF800; <a href="ld41/">No-Brain Jogging (Ludum Dare 41 entry, theme: "Combine Two Incompatible Genres")</a></li></li>
+	<li>&#xF800; <a href="ld46/">Keep the Rectangle Alive (Ludum Dare 46 entry, theme: "Keep it Alive")</a></li>
+	<li>&#xF800; <a href="ld48/">Ludum Dare 48 entry, theme: "Deeper and Deeper"</a></li>
+	<li>&#xF800; <a href="fette_else/">Fette Else</a></li>
+	<li>&#xF800; <a href="timer/">Timer</a></li>
+</ul>
+</div>
+
+<div>
+<h1>Blog</h1>
+<ul class="linklist">
+	<li>&#xF800; <a href="https://gist.github.com/gonutz/bcc89f0474fae455f4c05943f08d615d">Readability is Paramount</a></li>
+	<li>&#xF800; <a href="https://gist.github.com/gonutz/7c824582411b470b8292fac7cf282fe6">Cleaner Code</a></li>
+</div>
+
 </div>
 
 </body>
